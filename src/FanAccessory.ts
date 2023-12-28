@@ -9,6 +9,7 @@ import { DreoPlatform } from './platform';
 export class FanAccessory {
   private service: Service;
   private temperatureService?: Service;
+  private swingService?: Service;
 
   // Cached copy of latest fan states
   private fanState = {
@@ -71,6 +72,17 @@ export class FanAccessory {
       if (state.hoscon !== undefined) {
         this.fanState.SwingMethod = 'hoscon';
       }
+      
+      //try to register a new Switch for swing mode
+      this.swingService = this.accessory.getService(this.platform.Service.Switch); 
+      if (!this.swingService) {
+        this.swingService = this.accessory.addService(this.platform.Service.Switch, 'Oscillate');
+      }
+      this.swingService.getCharacteristic(this.platform.Characteristic.On)
+        .onSet(this.setSwingMode.bind(this))
+        .onGet(this.getSwingMode.bind(this));
+      //end of questionable code
+
       // register handlers for Swing Mode (oscillation)
       this.service.getCharacteristic(this.platform.Characteristic.SwingMode)
         .onSet(this.setSwingMode.bind(this))
